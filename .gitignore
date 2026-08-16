@@ -1,0 +1,21 @@
+# Carpetas generadas por Maven
+target/
+
+# Archivos compilados de Java
+*.class
+
+# Configuraciones de IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
