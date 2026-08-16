@@ -1,7 +1,7 @@
 package com.battlearena.server;
 
+import com.battlearena.server.database.Database;
 import com.battlearena.server.network.ClientHandler;
-import com.battlearena.shared.protocol.ConfigRed;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,8 +19,17 @@ public class Server {
         System.out.println("Battle Arena 2D - Servidor");
         System.out.println("====================================");
 
-        try (ServerSocket serverSocket = new ServerSocket(ConfigRed.PUERTO)) {
-            System.out.println("Servidor escuchando en el puerto " + ConfigRed.PUERTO);
+        int puerto = puertoServidor();
+        try {
+            Database.inicializarEsquema();
+            System.out.println("Base de datos preparada.");
+        } catch (java.sql.SQLException e) {
+            System.err.println("ERROR al preparar la base de datos: " + e.getMessage());
+            return;
+        }
+
+        try (ServerSocket serverSocket = new ServerSocket(puerto)) {
+            System.out.println("Servidor escuchando en el puerto " + puerto);
             System.out.println("Esperando conexiones... (Ctrl+C para detener)");
 
             while (true) {
@@ -33,6 +42,18 @@ public class Server {
 
         } catch (IOException e) {
             System.out.println("ERROR del servidor: " + e.getMessage());
+        }
+    }
+
+    private static int puertoServidor() {
+        String puerto = System.getenv("PORT");
+        if (puerto == null || puerto.isBlank()) return 5000;
+
+        try {
+            return Integer.parseInt(puerto);
+        } catch (NumberFormatException e) {
+            System.err.println("PORT no es valido; se usara 5000.");
+            return 5000;
         }
     }
 }

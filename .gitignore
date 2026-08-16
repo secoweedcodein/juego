@@ -19,3 +19,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Variables privadas de desarrollo y despliegue
+.env
+.env.*
