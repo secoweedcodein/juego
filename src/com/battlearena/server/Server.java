@@ -25,6 +25,7 @@ public class Server {
             System.out.println("Base de datos preparada.");
         } catch (java.sql.SQLException e) {
             System.err.println("ERROR al preparar la base de datos: " + e.getMessage());
+            System.exit(1);
             return;
         }
 
