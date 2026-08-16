@@ -1,6 +1,5 @@
-package com.battlearena.server.network;
+package com.battlearena.client.network;
 
-import com.battlearena.shared.protocol.ConfigRed;
 import com.battlearena.shared.protocol.Message;
 
 import java.io.IOException;
@@ -8,12 +7,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-/**
- * Conexion del cliente con el servidor.
- *
- * Un hilo interno lee los mensajes entrantes
- * y avisa al Listener.
- */
 public class ServerConnection {
 
     public interface Listener {
@@ -26,12 +19,11 @@ public class ServerConnection {
     private ObjectInputStream in;
     private Listener listener;
 
-    public void conectar(Listener listener) throws IOException {
+    public void conectar(String host, int port, Listener listener) throws IOException {
         this.listener = listener;
 
-        socket = new Socket(ConfigRed.HOST, ConfigRed.PUERTO);
+        socket = new Socket(host, port);
 
-        // Primero el OutputStream, luego el InputStream
         out = new ObjectOutputStream(socket.getOutputStream());
         out.flush();
         in = new ObjectInputStream(socket.getInputStream());
@@ -66,9 +58,7 @@ public class ServerConnection {
 
     public void cerrar() {
         try {
-            if (socket != null) {
-                socket.close();
-            }
+            if (socket != null) socket.close();
         } catch (IOException e) {
             // No requiere accion
         }

@@ -2,25 +2,23 @@ package com.battlearena.shared.models;
 
 import java.io.Serializable;
 
-public class PlayerState implements Serializable {
+public class Projectile implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     public int id;
     public int x;
     public int y;
-    public int hp;
-    public boolean alive;
     public int dirX;
     public int dirY;
+    public int ownerId;
 
-    public PlayerState(int id, int x, int y) {
+    public Projectile(int id, int x, int y, int dirX, int dirY, int ownerId) {
         this.id = id;
         this.x = x;
         this.y = y;
-        this.hp = 100;
-        this.alive = true;
-        this.dirX = (id == 1) ? 1 : -1;
-        this.dirY = 0;
+        this.dirX = dirX;
+        this.dirY = dirY;
+        this.ownerId = ownerId;
     }
-}   
+}

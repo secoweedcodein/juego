@@ -1,6 +1,8 @@
 package com.battlearena.shared.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameState implements Serializable {
 
@@ -12,6 +14,7 @@ public class GameState implements Serializable {
 
     public PlayerState jugador1;
     public PlayerState jugador2;
+    public List<Projectile> proyectiles = new ArrayList<>();
 
     public GameState() {
         jugador1 = new PlayerState(1, 100, 280);

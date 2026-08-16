@@ -1,6 +1,7 @@
 package com.battlearena.server.network;
 
 import com.battlearena.server.database.UserRepository;
+import com.battlearena.server.game.Game;
 import com.battlearena.server.game.GameRoom;
 import com.battlearena.shared.protocol.Message;
 import com.battlearena.shared.protocol.MessageType;
@@ -19,17 +20,17 @@ public class ClientHandler extends Thread {
 
     private int userId = -1;
     private String username = null;
+    private Game partidaActual;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
 
-    public int getUserId() {
-        return userId;
-    }
+    public int getUserId() { return userId; }
+    public String getUsername() { return username; }
 
-    public String getUsername() {
-        return username;
+    public void setPartida(Game partida) {
+        this.partidaActual = partida;
     }
 
     @Override
@@ -62,29 +63,37 @@ public class ClientHandler extends Thread {
         System.out.println("Mensaje recibido: " + mensaje.getType());
 
         switch (mensaje.getType()) {
-            case LOGIN:
-                procesarLogin(mensaje);
+            case LOGIN: procesarLogin(mensaje); break;
+            case REGISTER: procesarRegister(mensaje); break;
+            case JOIN_GAME: GameRoom.get().join(this); break;
+            case PLAYER_MOVE:
+                if (partidaActual != null) partidaActual.mover(this, mensaje.get("direccion"));
                 break;
-            case REGISTER:
-                procesarRegister(mensaje);
+            case PLAYER_ATTACK:
+                if (partidaActual != null) partidaActual.atacar(this);
                 break;
-            case JOIN_GAME:
-                GameRoom.get().join(this);
-                break;
-            case DISCONNECT:
-                GameRoom.get().leave(this);
-                break;
-            default:
-                System.out.println("Tipo sin manejo: " + mensaje.getType());
+            case STATS_REQUEST: procesarStats(); break;
+            case DISCONNECT: GameRoom.get().leave(this); break;
+            default: System.out.println("Tipo sin manejo: " + mensaje.getType());
+        }
+    }
+
+    private void procesarStats() {
+        try {
+            int[] stats = UserRepository.getStats(userId);
+            Message m = new Message(MessageType.STATS_RESPONSE);
+            m.put("partidas", String.valueOf(stats[0]));
+            m.put("victorias", String.valueOf(stats[1]));
+            m.put("derrotas", String.valueOf(stats[2]));
+            enviar(m);
+        } catch (SQLException e) {
+            enviarErrorSql(e);
         }
     }
 
     private void procesarLogin(Message mensaje) {
         try {
-            int id = UserRepository.login(
-                    mensaje.get("username"),
-                    mensaje.get("password"));
-
+            int id = UserRepository.login(mensaje.get("username"), mensaje.get("password"));
             userId = id;
             username = mensaje.get("username").trim();
 
@@ -105,9 +114,7 @@ public class ClientHandler extends Thread {
 
     private void procesarRegister(Message mensaje) {
         try {
-            UserRepository.registerUser(
-                    mensaje.get("username"),
-                    mensaje.get("password"));
+            UserRepository.registerUser(mensaje.get("username"), mensaje.get("password"));
 
             Message ok = new Message(MessageType.REGISTER_OK);
             ok.put("mensaje", "Registro exitoso. Ahora inicia sesion.");
@@ -129,6 +136,9 @@ public class ClientHandler extends Thread {
 
     public synchronized void enviar(Message mensaje) {
         try {
+            // Evita que ObjectOutputStream reutilice estados ya enviados.
+            // Así cada GAME_STATE contiene las coordenadas actuales.
+            out.reset();
             out.writeObject(mensaje);
             out.flush();
         } catch (IOException e) {

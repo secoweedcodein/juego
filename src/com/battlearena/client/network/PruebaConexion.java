@@ -1,4 +1,4 @@
-package com.battlearena.server.network;
+package com.battlearena.client.network;
 
 import com.battlearena.shared.protocol.ConfigRed;
 import com.battlearena.shared.protocol.Message;
